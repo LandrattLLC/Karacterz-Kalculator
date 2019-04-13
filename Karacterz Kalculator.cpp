@@ -427,6 +427,9 @@ void winCommand()
 
 endWin:
 	cout << "\nThank you for playing Karacterz and using the Karacterz Kalculator!\nPlease feel free to comment on the Karacterz Facebook page, Landratt's Twitter page or send me an email with any questions, comments or suggestions.\n\nHAVE A NICE DAY :)\n\n";
+		cout << "\nThank you for playing Karacterz and using the Karacterz Kalculator!\nPlease feel free to comment on the Karacterz Facebook page, Landratt's Twitter page or send me an email with any questions, comments or suggestions.\n\nHAVE A NICE DAY :)\n\n";
+	cout << "\nPress any key then hit Enter, or just hit Enter, to exit.\n";
+	getchar();
 	exit(0);
 }
 
