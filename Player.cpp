@@ -226,6 +226,8 @@ void Player::equipCard(Card* card, bool isLoaded)
 			if (card->getTitle() == "Ancient Tradition")
 			{
 				string tempTitle = "";
+				bool cardFound2 = false;
+				bool tempFound = false;
 
 				if ((this->equipLimits[1] > 0) || (this->equipLimits[6] > 0))
 				{
@@ -236,10 +238,11 @@ void Player::equipCard(Card* card, bool isLoaded)
 						return;
 					}
 				}
-tryAgain:
+tryATagain:
 				if (this->equipLimits[6] > 1)
 				{
 					cout << "\n" << this->getName() << " already has 2 hands equipped and cannot attach a weapon to Ancient Tradition.\n";
+					tempFound = true;
 					goto cl;
 				}
 
@@ -267,18 +270,19 @@ tryAgain:
 							cout << "\n" << this->getName() << " cannot equip more than 2 hands.\n\nWould you like to try another Weapon? (Y/N)  ";
 							if (choiceYN() == 'N')
 							{
-								this->unequip(card);
-								return;
+								break;
 							}
 							else
-								goto tryAgain;
+								goto tryATagain;
 						}
 
 						card->addAttachedCard(weapons[8]);
 						for (int i = 0; i < bonusSize; ++i)
 							this->bonuses[i] += weapons[8]->bonuses[i];
 						this->equipLimits[6]++;
-
+						
+						attachedName = tempTitle;
+						tempFound = true;
 					}
 					else if (oneOrTwo == 2)
 					{
@@ -287,17 +291,19 @@ tryAgain:
 							cout << "\n" << this->getName() << " cannot equip more than 2 hands.\n\nWould you like to try another Weapon? (Y/N)  ";
 							if (choiceYN() == 'N')
 							{
-								this->unequip(card);
-								return;
+								break;
 							}
 							else
-								goto tryAgain;
+								goto tryATagain;
 						}
 
 						card->addAttachedCard(weapons[9]);
 						for (int i = 0; i < bonusSize; ++i)
 							this->bonuses[i] += weapons[9]->bonuses[i];
 						this->equipLimits[6] += 2;
+
+						attachedName = tempTitle;
+						tempFound = true;
 					}
 				}
 
@@ -310,11 +316,10 @@ tryAgain:
 							cout << "\n" << this->getName() << " cannot equip more than 2 hands.\n\nWould you like to try another Weapon? (Y/N)  ";
 							if (choiceYN() == 'N')
 							{
-								this->unequip(card);
-								return;
+								break;
 							}
 							else
-								goto tryAgain;
+								goto tryATagain;
 						}
 
 						card->addAttachedCard(wcard);
@@ -327,31 +332,38 @@ tryAgain:
 							this->equipLimits[6] += 2;
 
 						attachedName = tempTitle;
+						tempFound = true;
 					}
 				}
 cl:
 				if (this->equipLimits[1] > 0)
 				{
 					cout << "\n" << this->getName() << " already has another Class card equipped. You cannot attach a Class card to " << card->getTitle() << ".\n";
-					break;
+					cardFound = true;
 				}
-
-				cout << "\nWhich Class card would you like to attach to " << card->getTitle() << ": ";
-				getline(cin, tempTitle);
-
-				for (auto &cl : classes)
+				else
 				{
-					if (tempTitle == cl->getTitle())
-					{
-						card->addAttachedCard(cl);
-						for (int i = 0; i < bonusSize; ++i)
-							this->bonuses[i] += cl->bonuses[i];
+					cout << "\nWhich Class card would you like to attach to " << card->getTitle() << ": ";
+					getline(cin, tempTitle);
 
-						this->equipLimits[1]++;
+					for (auto &cl : classes)
+					{
+						if (tempTitle == cl->getTitle())
+						{
+							card->addAttachedCard(cl);
+							for (int i = 0; i < bonusSize; ++i)
+								this->bonuses[i] += cl->bonuses[i];
+
+							this->equipLimits[1]++;
+
+							attachedName2 = tempTitle;
+							cardFound2 = true;
+						}
 					}
 				}
-				attachedName2 = tempTitle;
-				cardFound = true;
+
+				if ((!cardFound) && (tempFound) && (cardFound2))
+					cardFound = true;
 			}
 
 			if (card->getTitle() == "Armor Mastery")
@@ -381,11 +393,11 @@ cl:
 						for (int i = 0; i < bonusSize; ++i)
 							this->bonuses[i] += acard->bonuses[i];
 						this->equipLimits[4]++;
+
+						attachedName = tempTitle;
+						cardFound = true;
 					}
 				}
-				attachedName = tempTitle;
-				cardFound = true;
-
 			}
 
 			if (card->getTitle() == "Battle Mage")
@@ -407,27 +419,17 @@ cl:
 						card->addAttachedCard(acard);
 						for (int i = 0; i < bonusSize; ++i)
 							this->bonuses[i] += acard->bonuses[i];
+
+						attachedName = tempTitle;
+						cardFound = true;
 					}
 				}
-				attachedName = tempTitle;
-				cardFound = true;
-
 			}
 
 			if (card->getTitle() == "Independently Studied")
 			{
 				cout << "\nWould you like to gain +2 to a stat of your choice? (Y/N): ";
-				char answer;
-				cin >> answer;
-				while (!(cin) || ((answer != 'Y') && (answer != 'N')))
-				{
-					cout << "Please answer with Y or N: ";
-					cin.clear();
-					cin.ignore();
-					cin >> answer;
-				}
-				cin.ignore(CHAR_MAX, '\n');
-				if (answer == 'Y')
+				if (choiceYN() == 'Y')
 				{
 					cout << "\nWhich stat type would like to gain +2: ";
 					string tempStat = "";
@@ -441,28 +443,30 @@ cl:
 					{
 						this->bonuses[0] += 2;
 						card->gainMagic = true;
-						cout << "\n" << this->name << " has +2 Magic stats.\n";
+						cout << "\n" << this->name << " has +2 Magic stats!\n";
 					}
 					if (tempStat == "Agility")
 					{
 						this->bonuses[1] += 2;
 						card->gainAgility = true;
-						cout << "\n" << this->name << " has +2 Agility stats.\n";
+						cout << "\n" << this->name << " has +2 Agility stats!\n";
 					}
 					if (tempStat == "Physical")
 					{
 						this->bonuses[2] += 2;
 						card->gainPhysical = true;
-						cout << "\n" << this->name << " has +2 Physical stats.\n";
+						cout << "\n" << this->name << " has +2 Physical stats!\n";
 					}
 
 					card->gainStats = true;
+					cardFound = true;
 				}
-				if (answer == 'N')
+				else
 				{
 					string tempTitle = "";
 					cout << "\nAttach a mastery card to Independently Studied: ";
 					getline(cin, tempTitle);
+
 					for (auto &acard : mastery)
 					{
 						if (tempTitle == acard->getTitle())
@@ -470,13 +474,13 @@ cl:
 							card->addAttachedCard(acard);
 							for (int i = 0; i < bonusSize; ++i)
 								this->bonuses[i] += acard->bonuses[i];
+
+							card->gainMastery = true;
+							attachedName = tempTitle;
+							cardFound = true;
 						}
 					}
-					card->gainMastery = true;
-					attachedName = tempTitle;
 				}
-				cardFound = true;
-
 			}
 
 			if (card->getTitle() == "Prodigy")
@@ -512,26 +516,26 @@ cl:
 					if (i != 3)
 						cout << "\nWhat's another Stat card drew from the [S] deck: ";
 				}
+
 				cardFound = true;
 			}
-			if ((cardFound) && (card->getTitle() != "Prodigy") || (attachedName == ""))
-			{
-				if (attachedName == "")
-					cout << "\n" << attachedName2 << " has been attached to " << card->getTitle() << endl;
-				else
-					cout << "\n" << attachedName << " has been attached to " << card->getTitle() << endl;
-				break;
-			}
-			else if ((cardFound) && (card->getTitle() == "Ancient Tradition"))
-			{
+			
+			if (!cardFound)
+				cout << "\nPlease type the title of the card you wish to attach to " << card->getTitle() << endl;
+		}
+
+		if ((cardFound) && (attachedName != "") && (card->getTitle() != "Prodigy") && (card->getTitle() != "Ancient Tradition"))
+		{
+			cout << "\n" << attachedName << " has been attached to " << card->getTitle() << endl;
+		}
+		else if ((cardFound) && (card->getTitle() == "Ancient Tradition"))
+		{
+			if (attachedName == "")
+				cout << "\n" << attachedName2 << " has been attached to " << card->getTitle() << endl;
+			else if (attachedName2 == "")
+				cout << "\n" << attachedName << " has been attached to " << card->getTitle() << endl;
+			else
 				cout << "\n" << attachedName << " and " << attachedName2 << " have been attached to " << card->getTitle() << endl;
-				break;
-			}
-			else if ((cardFound) && (card->getTitle() == "Prodigy"))
-				break;
-
-			cout << "\nPlease type the title of the card you wish to attach to " << card->getTitle();
-
 		}
 	}
 }
@@ -750,9 +754,7 @@ void Player::displayPowers()
 			if (card == otherPowers.begin())
 			{
 				if (counter > 1)
-				{
 					cout << "\t(x" << counter << ", " << (*card)->getTitle() << ")\n\t" << (*card)->getPower() << "\n\n";
-				}
 				else
 					cout << "\t(" << (*card)->getTitle() << ")\n\t" << (*card)->getPower() << "\n\n";
 
@@ -846,10 +848,6 @@ void Player::unequip(Card* card)
 		
 		if ((*attachIter)->getType() == "Class")
 			this->equipLimits[1]--;
-
-//		if ((*attachIter)->getType() == "Armor")
-//			this->equipLimits[4]--;
-
 	}
 	card->attachedCards.clear();
 }
